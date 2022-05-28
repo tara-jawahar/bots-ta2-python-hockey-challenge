@@ -1,6 +1,7 @@
 import argparse
 
-from src.ranking import Ranking
+from src.ranking import CsvParser, CsvWriter, Ranking
+from src.tests import Tests
 
 
 def entrypoint() -> None:
@@ -23,9 +24,29 @@ def entrypoint() -> None:
     input_file = args.input_file
     output_file = args.output_file
 
-    # TODO: Add your code here
-    # (you may modify the line below)
-    my_ranking = Ranking()
+    # Guaranteed input/output files in problem description
+    if input_file is None:
+        input_file = "input/league-sample-games.csv"
+    if output_file is None:
+        output_file = "output/expected-output.csv"
+
+    csv_in = CsvParser(file=input_file)
+    games = csv_in.parse_input() 
+
+    my_ranking = Ranking(games)
+    my_ranking.calculate_points()
+    output = my_ranking.get_rankings()
+
+    # Verify output
+    tests = Tests(input=games, output=output, sample_input="input/league-sample-games.csv",
+        sample_output="output/expected-output.csv")
+    status = tests.run_all_tests()
+    if len(status) != 0:
+        print(status)
+
+    # Write output csv file
+    csv_out = CsvWriter(output=output, output_location=output_file)
+    csv_out.write_output()
 
 
 if __name__ == "__main__":
